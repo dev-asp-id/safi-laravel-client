@@ -1,0 +1,54 @@
+{
+    "name": "devaspid/safi-laravel-client",
+    "description": "Official Laravel Client SDK for SAFI Universal Analytics & Ingestion Hub",
+    "keywords": ["laravel", "safi", "analytics", "pos", "ecommerce", "crowdfunding", "ingestion", "devaspid"],
+    "license": "MIT",
+    "type": "library",
+    "authors": [
+        {
+            "name": "devASPid",
+            "email": "safi@asp.web.id",
+            "homepage": "https://safi.asp.web.id"
+        }
+    ],
+    "require": {
+        "php": "^8.0 || ^8.1 || ^8.2 || ^8.3 || ^8.4",
+        "guzzlehttp/guzzle": "^7.2",
+        "illuminate/contracts": "^9.0 || ^10.0 || ^11.0 || ^12.0 || ^13.0",
+        "illuminate/http": "^9.0 || ^10.0 || ^11.0 || ^12.0 || ^13.0",
+        "illuminate/support": "^9.0 || ^10.0 || ^11.0 || ^12.0 || ^13.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^7.0 || ^8.0 || ^9.0 || ^10.0",
+        "phpunit/phpunit": "^9.5 || ^10.0 || ^11.0",
+        "pestphp/pest": "^2.0 || ^3.0",
+        "mockery/mockery": "^1.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "Devaspid\\Safi\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Devaspid\\Safi\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Devaspid\\Safi\\SafiServiceProvider"
+            ],
+            "aliases": {
+                "Safi": "Devaspid\\Safi\\Facades\\Safi"
+            }
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    }
+}
