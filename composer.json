@@ -1,6 +1,6 @@
 {
     "name": "devaspid/safi-laravel-client",
-    "description": "Official Laravel Client SDK for SAFI Universal Analytics & Ingestion Hub",
+    "description": "Laravel Client SDK for SAFI by devASPid",
     "keywords": ["laravel", "safi", "analytics", "pos", "ecommerce", "crowdfunding", "ingestion", "devaspid"],
     "license": "MIT",
     "type": "library",
