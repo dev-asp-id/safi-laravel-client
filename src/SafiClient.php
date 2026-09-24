@@ -76,7 +76,7 @@ class SafiClient
     /**
      * Eksekusi HTTP POST dengan proteksi auto-retry.
      */
-    protected function sendIngestRequest(array $payload): array
+  protected function sendIngestRequest(array $payload): array
     {
         if (empty($this->apiKey)) {
             throw new SafiAuthenticationException('SAFI API Key belum diatur di file .env (SAFI_API_KEY).');
@@ -90,7 +90,8 @@ class SafiClient
             'Content-Type' => 'application/json',
         ])
             ->timeout($this->timeout)
-            ->retry($this->retryTimes, $this->retrySleepMs)
+            // Tambahkan parameter throw: false di argumen ketiga
+            ->retry($this->retryTimes, $this->retrySleepMs, throw: false)
             ->post($endpoint, $payload);
 
         if ($response->status() === 401) {
@@ -98,8 +99,9 @@ class SafiClient
         }
 
         if (! $response->successful()) {
+            $body = $response->body() ?? '';
             throw new SafiApiException(
-                message: "SAFI Ingestion Error [HTTP {$response->status()}]: ".$response->body(),
+                message: "SAFI Ingestion Error [HTTP {$response->status()}]: " . $body,
                 code: $response->status()
             );
         }
