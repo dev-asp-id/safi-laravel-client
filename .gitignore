@@ -1,3 +1,4 @@
 vendor
 composer.lock
-safi-laravel-client-package-guide.md
+.phpunit.cache
+.pest.xml

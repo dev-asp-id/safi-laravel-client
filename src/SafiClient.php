@@ -2,12 +2,14 @@
 
 namespace Devaspid\Safi;
 
+use Devaspid\Safi\Contracts\SafiClientInterface;
 use Devaspid\Safi\Exceptions\SafiApiException;
 use Devaspid\Safi\Exceptions\SafiAuthenticationException;
+use Devaspid\Safi\Jobs\SyncToSafiJob;
 use Exception;
 use Illuminate\Support\Facades\Http;
 
-class SafiClient
+class SafiClient implements SafiClientInterface
 {
     public function __construct(
         protected string $baseUrl,
@@ -57,6 +59,14 @@ class SafiClient
     }
 
     /**
+     * Kirim transaksi ke background queue secara asynchronous.
+     */
+    public function dispatchRawAsync(array $transactions, ?array $channel = null): void
+    {
+        dispatch(new SyncToSafiJob($transactions, $channel));
+    }
+
+    /**
      * Endpoint Ping / Connection Test.
      */
     public function testConnection(): bool
@@ -76,7 +86,7 @@ class SafiClient
     /**
      * Eksekusi HTTP POST dengan proteksi auto-retry.
      */
-  protected function sendIngestRequest(array $payload): array
+    protected function sendIngestRequest(array $payload): array
     {
         if (empty($this->apiKey)) {
             throw new SafiAuthenticationException('SAFI API Key belum diatur di file .env (SAFI_API_KEY).');
@@ -90,7 +100,6 @@ class SafiClient
             'Content-Type' => 'application/json',
         ])
             ->timeout($this->timeout)
-            // Tambahkan parameter throw: false di argumen ketiga
             ->retry($this->retryTimes, $this->retrySleepMs, throw: false)
             ->post($endpoint, $payload);
 

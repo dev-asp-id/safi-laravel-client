@@ -4,17 +4,17 @@
 [![Total Downloads](https://img.shields.io/packagist/dt/devaspid/safi-laravel-client.svg?style=flat-square)](https://packagist.org/packages/devaspid/safi-laravel-client)
 [![License](https://img.shields.io/packagist/l/devaspid/safi-laravel-client.svg?style=flat-square)](LICENSE.md)
 
-Laravel Client SDK untuk terhubung dengan **SAFI by devASPid**. Package ini mempermudah pengiriman data (agregasi) ke server SAFI.
+Laravel Client SDK resmi untuk terhubung dengan server **SAFI by devASPid** (`https://safi.asp.web.id`). Package ini mempermudah integrasi, agregasi, serta pengiriman data transaksi secara aman dan terstruktur.
 
 ---
 
 ## 📌 Fitur Utama
 
 - ⚡ **Dua Mode Integrasi Flexible:**
-  - **Pull Mode (Rekomendasi):** Server SAFI yang menarik data transaksi & cabang secara otomatis dari aplikasi Anda.
-  - **Push Mode:** Aplikasi Anda yang mengirim data transaksi (*real-time* atau *background job*) ke SAFI Server.
-- 🔄 **Auto-Retry & Fault Tolerance:** Proteksi otomatis saat koneksi jaringan tidak stabil.
-- 📊 **Hourly Aggregator Helper:** Mengelompokkan transaksi lokal secara otomatis per jam (0–23) dan per cabang.
+  - **Pull Mode (Rekomendasi):** Server SAFI yang menarik data transaksi & cabang secara terjadwal dari aplikasi Anda.
+  - **Push Mode:** Aplikasi Anda yang mengirim data transaksi (*real-time* atau *background queue job*) ke server SAFI.
+- 🔄 **Auto-Retry & Fault Tolerance:** Proteksi otomatis saat koneksi jaringan tidak stabil dengan graceful error handling.
+- 📊 **Hourly & RFM Aggregator Helper:** Mengelompokkan transaksi lokal secara otomatis per jam (0–23), per cabang, serta analisis RFM pelanggan.
 - 🤹 **Multi-Platform Support:** Siap digunakan untuk Retail POS, E-Commerce, dan Crowdfunding.
 - 🧪 **Compatibility:** Mendukung PHP 8.0 s/d 8.4+ dan Laravel 9.0 s/d 13.0+.
 
@@ -50,10 +50,10 @@ php artisan vendor:publish --tag=safi-config
 Tambahkan variabel lingkungan berikut di file `.env` aplikasi Anda:
 
 ```env
-# URL Server SAFI Hub Anda
-SAFI_BASE_URL=https://safi.domainanda.com
+# URL Server SAFI Hub (Default: https://safi.asp.web.id)
+SAFI_BASE_URL=https://safi.asp.web.id
 
-# Secret API Key Tenant yang didapatkan dari Admin Portal SAFI
+# Secret API Key Tenant yang didapatkan dari Admin Portal SAFI Hub
 SAFI_API_KEY=safi_live_xxxxxxxxxxxxxxxx
 
 # Tipe Platform: 'pos', 'online_shop', atau 'crowdfunding'
@@ -79,7 +79,7 @@ SAFI mendukung **dua mode integrasi**. Anda bisa memilih salah satu atau menggab
 
 ### 🟢 MODE 1: PULL PROVIDER (Rekomendasi Utama)
 
-Dalam mode ini, server SAFI Hub yang akan melakukan request `GET` secara berkala ke aplikasi Anda untuk mengambil data transaksi atau daftar cabang.
+Dalam mode ini, server SAFI Hub (`https://safi.asp.web.id`) yang akan melakukan request `GET` secara berkala ke aplikasi Anda untuk mengambil data transaksi atau daftar cabang.
 
 #### 1. Endpoint Transaksi Agregat (`GET /api/safi/sync`)
 
@@ -154,7 +154,7 @@ class SafiSyncExportController extends Controller
 
 #### 2. Endpoint Tarik Cabang (`GET /api/safi/channels`)
 
-Endpoint ini dipanggil saat tombol **"Tarik Cabang dari API"** ditekan pada Portal Admin SAFI.
+Endpoint ini dipanggil saat tombol **"Tarik Cabang dari API"** ditekan pada Portal Admin SAFI Hub.
 
 Daftarkan route di `routes/api.php`:
 
@@ -266,6 +266,29 @@ public function processPayment()
 
 ---
 
+## ⏰ Artisan Commands & Scheduler
+
+Package ini menyediakan command artisan bawaan untuk memicu sinkronisasi:
+
+```bash
+# Sinkronisasi data per jam
+php artisan safi:sync-hourly
+
+# Sinkronisasi / rekap data harian
+php artisan safi:sync-daily
+```
+
+Jadwalkan pada Laravel Scheduler (`app/Console/Kernel.php` atau `routes/console.php`):
+
+```php
+use Illuminate\Support\Facades\Schedule;
+
+Schedule::command('safi:sync-hourly')->hourly();
+Schedule::command('safi:sync-daily')->dailyAt('00:30');
+```
+
+---
+
 ## 🗺️ Pemetaan Entitas per Model Bisnis
 
 Gunakan tabel ini sebagai panduan saat memetakan kolom database Anda ke format DTO SAFI:
@@ -280,7 +303,7 @@ Gunakan tabel ini sebagai panduan saat memetakan kolom database Anda ke format D
 
 ## 🧪 Verifikasi Koneksi
 
-Lakukan pengujian koneksi ke server SAFI Hub dari `php artisan tinker`:
+Lakukan pengujian koneksi ke server SAFI Hub (`https://safi.asp.web.id`) dari `php artisan tinker`:
 
 ```php
 use Devaspid\Safi\Facades\Safi;
@@ -291,15 +314,15 @@ Safi::testConnection();
 
 ---
 
-## 🧪 Running Tests
+## 🧪 Menjalankan Tests
 
-Untuk menjalankan unit test pada package ini:
+Untuk menjalankan unit & feature tests pada package ini:
 
 ```bash
 composer test
 ```
 
-Untuk mengeksekusi tes beserta *code coverage*:
+Untuk mengeksekusi test beserta *code coverage*:
 
 ```bash
 composer test-coverage

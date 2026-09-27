@@ -4,6 +4,7 @@ namespace Devaspid\Safi;
 
 use Devaspid\Safi\Commands\SafiSyncDailyCommand;
 use Devaspid\Safi\Commands\SafiSyncHourlyCommand;
+use Devaspid\Safi\Contracts\SafiClientInterface;
 use Illuminate\Support\ServiceProvider;
 
 class SafiServiceProvider extends ServiceProvider
@@ -26,6 +27,7 @@ class SafiServiceProvider extends ServiceProvider
         });
 
         $this->app->alias(SafiClient::class, 'safi');
+        $this->app->alias(SafiClient::class, SafiClientInterface::class);
     }
 
     public function boot(): void
