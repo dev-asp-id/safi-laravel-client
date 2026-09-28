@@ -84,6 +84,14 @@ class SafiClient implements SafiClientInterface
     }
 
     /**
+     * Inisialisasi builder responder untuk endpoint PULL sinkronisasi SAFI (GET /api/safi/sync).
+     */
+    public function pullResponder(?\Illuminate\Http\Request $request = null): \Devaspid\Safi\Responder\SafiPullResponder
+    {
+        return \Devaspid\Safi\Responder\SafiPullResponder::forRequest($request);
+    }
+
+    /**
      * Eksekusi HTTP POST dengan proteksi auto-retry.
      */
     protected function sendIngestRequest(array $payload): array

@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static array ingestRaw(array $transactions, ?array $channel = null)
  * @method static void dispatchRawAsync(array $transactions, ?array $channel = null)
  * @method static bool testConnection()
+ * @method static \Devaspid\Safi\Responder\SafiPullResponder pullResponder(?\Illuminate\Http\Request $request = null)
  *
  * @see \Devaspid\Safi\SafiClient
  */

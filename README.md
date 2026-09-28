@@ -100,56 +100,34 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Branch;
 use App\Models\Order;
-use Devaspid\Safi\Aggregator\HourlyTransactionAggregator;
+use Devaspid\Safi\Facades\Safi;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class SafiSyncExportController extends Controller
 {
+    /**
+     * Opsi A (Super Ringkas): Menggunakan Safi::pullResponder()
+     * Otomatis memvalidasi X-API-KEY, membaca filter branch_code / date,
+     * serta mengagregasi daily_summary & hourly_summary.
+     */
     public function export(Request $request): JsonResponse
     {
-        // 1. Verifikasi X-API-KEY dari SAFI Hub
-        $apiKey = $request->header('X-API-KEY');
-        if ($apiKey !== config('safi.api_key')) {
-            return response()->json(['message' => 'Unauthorized: Invalid API Key'], 401);
-        }
-
         $date = $request->query('date', now()->format('Y-m-d'));
 
-        // 2. Query transaksi lokal pada tanggal bersangkutan
-        $orders = Order::whereDate('created_at', $date)->get();
-
-        // 3. Kembalikan format JSON sesuai standar SAFI
-        return response()->json([
-            'status' => 'success',
-            'source_type' => config('safi.source_type', 'pos'),
-            'date' => $date,
-            'channels' => Branch::where('is_active', true)->get()->map(fn($b) => [
-                'source_original_id' => $b->id,
-                'code' => $b->code,
-                'name' => $b->name,
-            ])->values()->all(),
-            'daily_summary' => [
-                [
-                    'channel_original_id' => 1,
-                    'total_transactions' => $orders->count(),
-                    'total_revenue' => (float) $orders->sum('grand_total'),
-                    'total_cogs' => (float) $orders->sum('total_hpp'),
-                    'total_profit' => (float) $orders->sum('net_profit'),
-                    'total_discount' => (float) $orders->sum('discount_amount'),
-                    'total_items_sold' => (int) $orders->sum('items_count'),
-                    'member_count' => $orders->whereNotNull('customer_id')->count(),
-                    'non_member_count' => $orders->whereNull('customer_id')->count(),
-                ]
-            ],
-            'hourly_summary' => HourlyTransactionAggregator::aggregate(
-                transactions: $orders,
-                targetDate: $date,
-                channelOriginalId: 1
-            ),
-        ]);
+        return Safi::pullResponder($request)
+            ->branches(Branch::where('is_active', true)->get())
+            ->orders(Order::whereDate('created_at', $date)->get())
+            ->respond();
     }
 }
+```
+
+> **Catatan:** `Safi::pullResponder()` secara otomatis menangani:
+> 1. Verifikasi header `X-API-KEY`.
+> 2. Penarikan seluruh cabang aktif saat tidak ada filter cabang.
+> 3. Penarikan data khusus satu cabang saat parameter `?branch_code=...` disertakan oleh SAFI Hub.
+> 4. Komputasi `daily_summary` dan `hourly_summary` per cabang secara instan.
 ```
 
 #### 2. Endpoint Tarik Cabang (`GET /api/safi/channels`)

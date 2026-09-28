@@ -61,4 +61,54 @@ class HourlyTransactionAggregator
 
         return array_values($hourlyBuckets);
     }
+
+    /**
+     * Mengelompokkan transaksi untuk banyak cabang sekaligus menjadi array hourly_summary gabungan.
+     *
+     * @param Collection $transactions Koleksi record transaksi lokal
+     * @param Collection $branches Koleksi record cabang lokal
+     * @param string $targetDate Tanggal target format Y-m-d
+     * @param string $branchForeignKey Nama foreign key cabang di tabel transaksi (misal: 'branch_id')
+     * @param string $branchPrimaryKey Nama primary key di tabel cabang (misal: 'id')
+     */
+    public static function aggregateMultiBranch(
+        Collection $transactions,
+        Collection $branches,
+        string $targetDate,
+        string $branchForeignKey = 'branch_id',
+        string $branchPrimaryKey = 'id',
+        string $dateField = 'created_at',
+        string $amountField = 'grand_total',
+        string $cogsField = 'total_cogs',
+        string $profitField = 'total_profit',
+        string $discountField = 'total_discount',
+        string $itemsField = 'items_count'
+    ): array {
+        $allHourly = [];
+
+        foreach ($branches as $branch) {
+            $branchId = is_object($branch) ? ($branch->{$branchPrimaryKey} ?? 1) : ($branch[$branchPrimaryKey] ?? 1);
+
+            $branchTx = $transactions->filter(function ($tx) use ($branchForeignKey, $branchId) {
+                $val = is_object($tx) ? ($tx->{$branchForeignKey} ?? null) : ($tx[$branchForeignKey] ?? null);
+                return (string) $val === (string) $branchId;
+            });
+
+            $hourly = self::aggregate(
+                transactions: $branchTx,
+                targetDate: $targetDate,
+                channelOriginalId: $branchId,
+                dateField: $dateField,
+                amountField: $amountField,
+                cogsField: $cogsField,
+                profitField: $profitField,
+                discountField: $discountField,
+                itemsField: $itemsField
+            );
+
+            $allHourly = array_merge($allHourly, $hourly);
+        }
+
+        return $allHourly;
+    }
 }

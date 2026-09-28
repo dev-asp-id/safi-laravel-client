@@ -23,4 +23,9 @@ interface SafiClientInterface
      * Test connection to SAFI Hub.
      */
     public function testConnection(): bool;
+
+    /**
+     * Create a pull responder instance for PULL endpoint (GET /api/safi/sync).
+     */
+    public function pullResponder(?\Illuminate\Http\Request $request = null): \Devaspid\Safi\Responder\SafiPullResponder;
 }
